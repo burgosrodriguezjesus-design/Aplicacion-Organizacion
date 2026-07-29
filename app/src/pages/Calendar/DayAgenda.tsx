@@ -30,13 +30,31 @@ export function buildAgenda(date: string, tasks: Task[], events: CalendarEvent[]
   return list;
 }
 
-export function AgendaChip({ entry }: { entry: AgendaEntry }) {
+export function AgendaChip({ entry, compact }: { entry: AgendaEntry; compact?: boolean }) {
   const setEditingEventId = useUiStore((s) => s.setEditingEventId);
   const setEditingTaskId = useUiStore((s) => s.setEditingTaskId);
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: entry.key, data: entry });
 
   const style = transform ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` } : undefined;
   const isDone = entry.status === 'completed';
+
+  if (compact) {
+    return (
+      <button
+        ref={setNodeRef}
+        style={style}
+        {...listeners}
+        {...attributes}
+        onClick={() => (entry.type === 'event' ? setEditingEventId(entry.id) : setEditingTaskId(entry.id))}
+        className={`block w-full overflow-hidden rounded-lg border-l-4 bg-white px-1.5 py-1 text-left text-[10px] leading-tight shadow-sm transition-opacity dark:bg-zinc-900 ${isDragging ? 'opacity-30' : ''} ${
+          entry.type === 'event' ? 'border-sky-400' : 'border-accent'
+        }`}
+      >
+        <span className="block font-semibold tabular-nums text-zinc-400">{entry.time}</span>
+        <span className={`block truncate ${isDone ? 'text-zinc-400 line-through' : 'text-zinc-700 dark:text-zinc-200'}`}>{entry.title}</span>
+      </button>
+    );
+  }
 
   return (
     <button
@@ -45,13 +63,17 @@ export function AgendaChip({ entry }: { entry: AgendaEntry }) {
       {...listeners}
       {...attributes}
       onClick={() => (entry.type === 'event' ? setEditingEventId(entry.id) : setEditingTaskId(entry.id))}
-      className={`flex w-full items-center gap-2 rounded-lg border-l-4 bg-white px-2.5 py-1.5 text-left text-xs shadow-sm transition-opacity dark:bg-zinc-900 ${isDragging ? 'opacity-30' : ''} ${
+      className={`flex w-full items-center gap-2 overflow-hidden rounded-lg border-l-4 bg-white px-2.5 py-1.5 text-left text-xs shadow-sm transition-opacity dark:bg-zinc-900 ${isDragging ? 'opacity-30' : ''} ${
         entry.type === 'event' ? 'border-sky-400' : 'border-accent'
       }`}
     >
       <span className="shrink-0 font-semibold tabular-nums text-zinc-400">{entry.time}</span>
       <span className={`min-w-0 flex-1 truncate ${isDone ? 'text-zinc-400 line-through' : 'text-zinc-700 dark:text-zinc-200'}`}>{entry.title}</span>
-      {entry.categoryId && <CategoryChip categoryId={entry.categoryId} />}
+      {entry.categoryId && (
+        <span className="min-w-0 shrink truncate">
+          <CategoryChip categoryId={entry.categoryId} />
+        </span>
+      )}
     </button>
   );
 }
@@ -75,7 +97,7 @@ export function DayColumn({ date, compact }: { date: string; compact?: boolean }
       ref={setNodeRef}
       className={`flex min-h-[120px] flex-col gap-1.5 rounded-xl p-1.5 transition-colors ${isOver ? 'bg-accent/10' : ''}`}
     >
-      {entries.map((e) => <AgendaChip key={e.key} entry={e} />)}
+      {entries.map((e) => <AgendaChip key={e.key} entry={e} compact={compact} />)}
       <button
         onClick={createHere}
         className={`rounded-lg border border-dashed border-zinc-200 text-zinc-400 hover:border-accent hover:text-accent dark:border-zinc-800 ${compact ? 'py-1 text-[10px]' : 'mt-1 py-1.5 text-[11px]'}`}
