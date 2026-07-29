@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { SideNav } from './SideNav';
 import { BottomNav } from './BottomNav';
 import { Fab } from './Fab';
+import { AssistantQuickButton } from './AssistantQuickButton';
 import { QuickAddSheet } from '../QuickAdd/QuickAddSheet';
 import { GlobalSearch } from '../Search/GlobalSearch';
 import { TaskEditorSheet } from '../editors/TaskEditorSheet';
@@ -37,6 +38,7 @@ export function AppShell() {
       </main>
       <BottomNav />
       <Fab />
+      <AssistantQuickButton />
       <QuickAddSheet />
       <GlobalSearch />
       <TaskEditorSheet />
