@@ -1,11 +1,13 @@
 import { useNavigate } from 'react-router-dom';
-import { Repeat, StickyNote, Inbox, Bell, Sunrise, BarChart3, Settings, Timer, Sparkles, ChevronRight } from 'lucide-react';
+import { Repeat, StickyNote, Inbox, Bell, Sunrise, BarChart3, Settings, Timer, Sparkles, Heart, ChevronRight } from 'lucide-react';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { Card } from '../../components/ui/Card';
 import { useStore } from '../../store/store';
 import { useUiStore } from '../../store/uiStore';
+import { useAuthStore } from '../../store/authStore';
 
 const ITEMS = [
+  { to: '/mas/pareja', label: 'Pareja', desc: 'Calendario compartido', icon: Heart, color: '#ec4899' },
   { to: '/mas/habitos', label: 'Hábitos', desc: 'Rachas y cumplimiento', icon: Repeat, color: '#22c55e' },
   { to: '/mas/notas', label: 'Notas', desc: 'Ideas y apuntes', icon: StickyNote, color: '#eab308' },
   { to: '/mas/bandeja', label: 'Bandeja de entrada', desc: 'Captura rápida', icon: Inbox, color: '#6366f1' },
@@ -22,6 +24,7 @@ export function MorePage() {
   const profile = useStore((s) => s.profile);
   const inboxCount = useStore((s) => s.inboxItems.length);
   const setAssistantOpen = useUiStore((s) => s.setAssistantOpen);
+  const partner = useAuthStore((s) => s.partner);
 
   return (
     <div className="mx-auto max-w-3xl px-4 pt-6 sm:px-6 md:pt-10">
@@ -38,7 +41,11 @@ export function MorePage() {
       <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
         {ITEMS.map((item) => {
           const Icon = item.icon;
-          const badge = item.to === '/mas/bandeja' && inboxCount > 0 ? inboxCount : null;
+          const badge = item.to === '/mas/bandeja' && inboxCount > 0
+            ? inboxCount
+            : item.to === '/mas/pareja' && partner
+              ? '💛'
+              : null;
           return (
             <button
               key={item.to}

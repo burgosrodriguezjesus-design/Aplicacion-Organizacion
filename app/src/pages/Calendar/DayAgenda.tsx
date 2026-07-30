@@ -1,13 +1,15 @@
+import { Heart } from 'lucide-react';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
-import type { CalendarEvent, Task } from '../../types';
+import type { CalendarEvent, SharedEvent, Task } from '../../types';
 import { eventsOnDate, eventStatusOnDate, tasksOnDate, taskStatusOnDate } from '../../store/store';
 import { useStore } from '../../store/store';
 import { useUiStore } from '../../store/uiStore';
+import { useSharedEventsStore } from '../../store/sharedEventsStore';
 import { CategoryChip } from '../../components/ui/Meta';
 
 interface AgendaEntry {
   key: string;
-  type: 'event' | 'task';
+  type: 'event' | 'task' | 'shared';
   id: string;
   title: string;
   time?: string;
@@ -17,7 +19,11 @@ interface AgendaEntry {
   priority?: Task['priority'];
 }
 
-export function buildAgenda(date: string, tasks: Task[], events: CalendarEvent[]): AgendaEntry[] {
+function sharedEventsOnDate(events: SharedEvent[], date: string): SharedEvent[] {
+  return events.filter((e) => e.date === date);
+}
+
+export function buildAgenda(date: string, tasks: Task[], events: CalendarEvent[], shared: SharedEvent[] = []): AgendaEntry[] {
   const list: AgendaEntry[] = [];
   for (const e of eventsOnDate(events, date)) {
     list.push({ key: `event:${e.id}`, type: 'event', id: e.id, title: e.title, time: e.startTime, endTime: e.endTime, categoryId: e.categoryId, status: eventStatusOnDate(e, date) });
@@ -26,6 +32,9 @@ export function buildAgenda(date: string, tasks: Task[], events: CalendarEvent[]
     if (!t.time) continue;
     list.push({ key: `task:${t.id}`, type: 'task', id: t.id, title: t.title, time: t.time, categoryId: t.categoryId, status: taskStatusOnDate(t, date), priority: t.priority });
   }
+  for (const s of sharedEventsOnDate(shared, date)) {
+    list.push({ key: `shared:${s.id}`, type: 'shared', id: s.id, title: s.title, time: s.startTime, endTime: s.endTime, status: 'pending' });
+  }
   list.sort((a, b) => (a.time || '').localeCompare(b.time || ''));
   return list;
 }
@@ -33,10 +42,22 @@ export function buildAgenda(date: string, tasks: Task[], events: CalendarEvent[]
 export function AgendaChip({ entry, compact }: { entry: AgendaEntry; compact?: boolean }) {
   const setEditingEventId = useUiStore((s) => s.setEditingEventId);
   const setEditingTaskId = useUiStore((s) => s.setEditingTaskId);
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: entry.key, data: entry });
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: entry.key,
+    data: entry,
+    disabled: entry.type === 'shared',
+  });
 
   const style = transform ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` } : undefined;
   const isDone = entry.status === 'completed';
+
+  const openEntry = () => {
+    if (entry.type === 'event') setEditingEventId(entry.id);
+    else if (entry.type === 'shared') setEditingEventId(`shared:${entry.id}`);
+    else setEditingTaskId(entry.id);
+  };
+
+  const borderClass = entry.type === 'event' ? 'border-sky-400' : entry.type === 'shared' ? 'border-pink-400' : 'border-accent';
 
   if (compact) {
     return (
@@ -45,13 +66,13 @@ export function AgendaChip({ entry, compact }: { entry: AgendaEntry; compact?: b
         style={style}
         {...listeners}
         {...attributes}
-        onClick={() => (entry.type === 'event' ? setEditingEventId(entry.id) : setEditingTaskId(entry.id))}
-        className={`block w-full overflow-hidden rounded-lg border-l-4 bg-white px-1.5 py-1 text-left text-[10px] leading-tight shadow-sm transition-opacity dark:bg-zinc-900 ${isDragging ? 'opacity-30' : ''} ${
-          entry.type === 'event' ? 'border-sky-400' : 'border-accent'
-        }`}
+        onClick={openEntry}
+        className={`block w-full overflow-hidden rounded-lg border-l-4 bg-white px-1.5 py-1 text-left text-[10px] leading-tight shadow-sm transition-opacity dark:bg-zinc-900 ${isDragging ? 'opacity-30' : ''} ${borderClass}`}
       >
         <span className="block font-semibold tabular-nums text-zinc-400">{entry.time}</span>
-        <span className={`block truncate ${isDone ? 'text-zinc-400 line-through' : 'text-zinc-700 dark:text-zinc-200'}`}>{entry.title}</span>
+        <span className={`block truncate ${isDone ? 'text-zinc-400 line-through' : 'text-zinc-700 dark:text-zinc-200'}`}>
+          {entry.type === 'shared' && '💛 '}{entry.title}
+        </span>
       </button>
     );
   }
@@ -62,18 +83,18 @@ export function AgendaChip({ entry, compact }: { entry: AgendaEntry; compact?: b
       style={style}
       {...listeners}
       {...attributes}
-      onClick={() => (entry.type === 'event' ? setEditingEventId(entry.id) : setEditingTaskId(entry.id))}
-      className={`flex w-full items-center gap-2 overflow-hidden rounded-lg border-l-4 bg-white px-2.5 py-1.5 text-left text-xs shadow-sm transition-opacity dark:bg-zinc-900 ${isDragging ? 'opacity-30' : ''} ${
-        entry.type === 'event' ? 'border-sky-400' : 'border-accent'
-      }`}
+      onClick={openEntry}
+      className={`flex w-full items-center gap-2 overflow-hidden rounded-lg border-l-4 bg-white px-2.5 py-1.5 text-left text-xs shadow-sm transition-opacity dark:bg-zinc-900 ${isDragging ? 'opacity-30' : ''} ${borderClass}`}
     >
       <span className="shrink-0 font-semibold tabular-nums text-zinc-400">{entry.time}</span>
+      {entry.type === 'shared' && <Heart size={12} className="shrink-0 text-pink-400" fill="currentColor" />}
       <span className={`min-w-0 flex-1 truncate ${isDone ? 'text-zinc-400 line-through' : 'text-zinc-700 dark:text-zinc-200'}`}>{entry.title}</span>
       {entry.categoryId && (
         <span className="min-w-0 shrink truncate">
           <CategoryChip categoryId={entry.categoryId} />
         </span>
       )}
+      {entry.type === 'shared' && <span className="shrink-0 text-[10px] font-medium text-pink-400">Pareja</span>}
     </button>
   );
 }
@@ -81,11 +102,12 @@ export function AgendaChip({ entry, compact }: { entry: AgendaEntry; compact?: b
 export function DayColumn({ date, compact }: { date: string; compact?: boolean }) {
   const tasks = useStore((s) => s.tasks);
   const events = useStore((s) => s.events);
+  const sharedEvents = useSharedEventsStore((s) => s.events);
   const setEditingEventId = useUiStore((s) => s.setEditingEventId);
   const setNewItemDate = useUiStore((s) => s.setNewItemDate);
   const { setNodeRef, isOver } = useDroppable({ id: `day:${date}` });
 
-  const entries = buildAgenda(date, tasks, events);
+  const entries = buildAgenda(date, tasks, events, sharedEvents);
 
   const createHere = () => {
     setNewItemDate(date);

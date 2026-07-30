@@ -221,3 +221,31 @@ export interface TimelineEntry {
   categoryId?: ID;
   order: number;
 }
+
+// ---- Shared (couple) calendar — backed by Supabase, not localStorage ----
+
+export interface Profile {
+  id: string;
+  displayName: string;
+  avatarEmoji: string;
+}
+
+export interface Couple {
+  id: string;
+  inviteCode: string;
+}
+
+export interface SharedEvent {
+  id: string;
+  coupleId: string;
+  createdBy: string;
+  title: string;
+  date: string; // yyyy-MM-dd
+  startTime: string;
+  endTime: string;
+  location: string;
+  notes: string;
+  color: string;
+  createdAt: string;
+  updatedAt: string;
+}

@@ -12,7 +12,19 @@ Aplicación de organización personal: centro de control diario, calendario, tar
 - recharts (estadísticas)
 - vite-plugin-pwa (funciona offline, instalable como app)
 
-Es una aplicación **local-first**: todos los datos se guardan en el dispositivo (localStorage), por lo que funciona sin conexión desde el primer momento. Todavía no incluye backend, cuentas de usuario ni sincronización entre dispositivos — es el siguiente paso natural si se quiere multi-dispositivo.
+Es una aplicación **local-first**: todos los datos personales (tareas, hábitos, objetivos, notas...) se guardan en el dispositivo (localStorage), por lo que funciona sin conexión desde el primer momento y sin necesidad de cuenta.
+
+La única parte que sí usa un backend es el **calendario compartido en pareja** (sección "Pareja"), construido sobre [Supabase](https://supabase.com) (Postgres + Auth + Realtime). Es totalmente opcional: si no se configura, el resto de la app funciona exactamente igual y esa sección simplemente muestra un aviso de "no activado".
+
+### Activar el calendario compartido (opcional)
+
+1. Crea un proyecto gratuito en [supabase.com](https://supabase.com).
+2. En tu proyecto, abre **SQL Editor** → pega el contenido de `supabase/schema.sql` → **Run**. Crea las tablas, la seguridad a nivel de fila (RLS) y el canal en tiempo real.
+3. En **Settings → API**, copia la **Project URL** y la clave **anon public**.
+4. Local: copia `.env.example` a `.env.local` y pega ahí esos dos valores.
+5. Desplegado (Vercel): en el proyecto → **Settings → Environment Variables**, añade `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` con esos mismos valores, y vuelve a desplegar.
+
+Con eso, cualquiera que abra la app podrá crear una cuenta, generar un código de invitación y vincularse con su pareja para compartir eventos del calendario. El resto de datos (tareas, hábitos, notas...) sigue siendo local y privado de cada persona.
 
 ## Desarrollo
 
@@ -44,3 +56,4 @@ src/
 - **Modo foco**: temporizador Pomodoro configurable por tarea.
 - **Asistente**: comandos simples en español ("¿qué tengo que hacer hoy?", "organízame el día", "muéveme X al jueves") que nunca modifican datos sin confirmación explícita.
 - **Búsqueda global**: `Cmd/Ctrl + K`.
+- **Pareja**: cuenta con email/contraseña + calendario de eventos compartido en tiempo real con tu pareja (requiere configurar Supabase, ver arriba).

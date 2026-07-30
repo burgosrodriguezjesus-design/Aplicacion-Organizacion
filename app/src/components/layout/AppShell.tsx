@@ -12,12 +12,19 @@ import { GoalEditorSheet } from '../editors/GoalEditorSheet';
 import { HabitEditorSheet } from '../editors/HabitEditorSheet';
 import { NoteEditorSheet } from '../editors/NoteEditorSheet';
 import { AssistantSheet } from '../Assistant/AssistantSheet';
+import { SharedDataSync } from '../SharedDataSync';
 import { useTheme } from '../../hooks/useTheme';
 import { useUiStore } from '../../store/uiStore';
+import { useAuthStore } from '../../store/authStore';
 
 export function AppShell() {
   useTheme();
   const setSearchOpen = useUiStore((s) => s.setSearchOpen);
+  const initAuth = useAuthStore((s) => s.init);
+
+  useEffect(() => {
+    initAuth();
+  }, [initAuth]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -47,6 +54,7 @@ export function AppShell() {
       <HabitEditorSheet />
       <NoteEditorSheet />
       <AssistantSheet />
+      <SharedDataSync />
     </div>
   );
 }

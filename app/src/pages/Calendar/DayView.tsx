@@ -1,4 +1,5 @@
 import { useStore } from '../../store/store';
+import { useSharedEventsStore } from '../../store/sharedEventsStore';
 import { DayColumn, buildAgenda } from './DayAgenda';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { CalendarDays } from 'lucide-react';
@@ -6,7 +7,8 @@ import { CalendarDays } from 'lucide-react';
 export function DayView({ date }: { date: string }) {
   const tasks = useStore((s) => s.tasks);
   const events = useStore((s) => s.events);
-  const entries = buildAgenda(date, tasks, events);
+  const sharedEvents = useSharedEventsStore((s) => s.events);
+  const entries = buildAgenda(date, tasks, events, sharedEvents);
 
   return (
     <div className="mx-auto max-w-md">

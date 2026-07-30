@@ -1,11 +1,13 @@
 import { useMemo } from 'react';
 import { useStore, tasksOnDate, eventsOnDate } from '../../store/store';
+import { useSharedEventsStore } from '../../store/sharedEventsStore';
 import { monthGrid } from './calendarUtils';
 import { todayKey, WEEKDAY_LABELS_SHORT } from '../../lib/date';
 
 export function MonthView({ anchor, onSelectDay }: { anchor: Date; onSelectDay: (date: string) => void }) {
   const tasks = useStore((s) => s.tasks);
   const events = useStore((s) => s.events);
+  const sharedEvents = useSharedEventsStore((s) => s.events);
   const weekStartsOn = useStore((s) => s.profile.weekStartsOn);
   const today = todayKey();
 
@@ -25,7 +27,8 @@ export function MonthView({ anchor, onSelectDay }: { anchor: Date; onSelectDay: 
           const isToday = d === today;
           const t = tasksOnDate(tasks, d).length;
           const e = eventsOnDate(events, d).length;
-          const total = t + e;
+          const s = sharedEvents.filter((se) => se.date === d).length;
+          const total = t + e + s;
           return (
             <button
               key={d}
@@ -37,7 +40,8 @@ export function MonthView({ anchor, onSelectDay }: { anchor: Date; onSelectDay: 
               <span>{Number(d.slice(8, 10))}</span>
               {total > 0 && (
                 <span className="flex gap-0.5">
-                  {Array.from({ length: Math.min(total, 3) }).map((_, i) => (
+                  {s > 0 && <span className="h-1 w-1 rounded-full bg-pink-400" />}
+                  {Array.from({ length: Math.min(total - (s > 0 ? 1 : 0), s > 0 ? 2 : 3) }).map((_, i) => (
                     <span key={i} className="h-1 w-1 rounded-full bg-accent" />
                   ))}
                 </span>

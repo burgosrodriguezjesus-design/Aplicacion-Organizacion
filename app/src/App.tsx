@@ -12,6 +12,7 @@ import { RemindersPage } from './pages/More/RemindersPage';
 import { RoutinesPage } from './pages/More/RoutinesPage';
 import { StatsPage } from './pages/More/StatsPage';
 import { SettingsPage } from './pages/More/SettingsPage';
+import { CouplePage } from './pages/More/CouplePage';
 import { FocusPage } from './pages/Focus/FocusPage';
 
 export default function App() {
@@ -31,6 +32,7 @@ export default function App() {
           <Route path="/mas/rutinas" element={<RoutinesPage />} />
           <Route path="/mas/estadisticas" element={<StatsPage />} />
           <Route path="/mas/ajustes" element={<SettingsPage />} />
+          <Route path="/mas/pareja" element={<CouplePage />} />
           <Route path="/foco/:taskId" element={<FocusPage />} />
           <Route path="/foco" element={<FocusPage />} />
         </Route>
