@@ -34,6 +34,14 @@ body {
   scrollbar-color: rgb(255 255 255 / 0.15) transparent;
 }
 
+/* Grid children default to a content-based minimum width, so a native
+   date/time input (or long text) can force the column wider than its track
+   and visually spill into the next one instead of shrinking. Every direct
+   grid child opts into shrinkability by default. */
+.grid > * {
+  min-width: 0;
+}
+
 .accent { color: var(--accent); }
 .bg-accent { background-color: var(--accent); }
 .border-accent { border-color: var(--accent); }
